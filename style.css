@@ -220,6 +220,7 @@ button, input, select { font: inherit; color: inherit; }
 
 .rec-actions { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-top: 1.125rem; }
 .rec-actions .wide { grid-column: 1 / -1; }
+.btn.full { width: 100%; margin-bottom: .75rem; }
 .btn.primary.alt { background: linear-gradient(135deg, #FFB547, #F2771A); color: #2A1100; }
 
 /* ---------- 식당 목록 ---------- */

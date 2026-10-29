@@ -461,16 +461,21 @@
     $("#sheetLinks").hidden = true;
     $("#sheetGo").hidden = false;
     $("#sheetGo").onclick = () => { closeSheet(); go("#menu/" + encodeURIComponent(rec.menu.name)); };
+    $("#sheetPlace").hidden = !rec.count;
+    $("#sheetPlace").onclick = () => placeSpin(rec.menu);
     $("#sheet").hidden = false;
     $("#sheetGo").focus();
   }
 
   // 추천 메뉴들의 식당을 한데 모아 그중 한 곳을 뽑는다 (이미 받은 검색 결과를 다시 써서 추가 호출 없음)
-  async function placeSpin() {
+  // onlyMenu를 주면 그 메뉴의 식당 중에서만 뽑는다
+  async function placeSpin(onlyMenu) {
     if (spinning || !S.loc) return;
+    if (onlyMenu && !onlyMenu.name) onlyMenu = null; // 클릭 이벤트가 들어온 경우
     spinning = true;
     const pool = new Map();
-    const results = await Promise.allSettled(S.recs.filter(r => r.count).map(r => searchPlaces(r.menu).then(x => ({ r, x }))));
+    const recs = onlyMenu ? [{ menu: onlyMenu }] : S.recs.filter(r => r.count);
+    const results = await Promise.allSettled(recs.map(r => searchPlaces(r.menu).then(x => ({ r, x }))));
     for (const res of results) {
       if (res.status !== "fulfilled") continue;
       for (const p of res.value.x.places) if (!pool.has(p.id)) pool.set(p.id, { p, menu: res.value.r.menu });
@@ -479,10 +484,11 @@
     if (!all.length) { spinning = false; toast("뽑을 식당이 없어요. 반경을 넓혀 보세요"); return; }
     const win = all[Math.floor(Math.random() * all.length)];
 
-    sheetAgain = placeSpin;
-    $("#sheetKicker").textContent = `식당 ${all.length}곳 중에서 뽑는 중…`;
+    sheetAgain = () => placeSpin(onlyMenu);
+    $("#sheetKicker").textContent = `${onlyMenu ? onlyMenu.name + " " : ""}식당 ${all.length}곳 중에서 뽑는 중…`;
     $("#sheetSub").textContent = "";
     $("#sheetGo").hidden = true;
+    $("#sheetPlace").hidden = true;
     $("#sheetLinks").hidden = true;
     ["#sheetAgain", "#sheetClose"].forEach(id => { $(id).disabled = true; });
     $("#sheet").hidden = false;
@@ -613,6 +619,7 @@
     const list = $("#placeList"), sum = $("#placeSummary"), box = $("#mapBox");
     list.replaceChildren();
     box.hidden = true;
+    $("#menuPickBtn").hidden = true;
 
     const fallbackLink = h("a", { class: "btn big", href: "https://map.kakao.com/link/search/" + encodeURIComponent(menu.q || name), target: "_blank", rel: "noopener" }, `카카오맵에서 ‘${name}’ 검색`);
     if (!S.loc) {
@@ -637,6 +644,7 @@
       }
       sum.textContent = `반경 ${radiusLabel(P.radius)} 안 ${countLabel(r.total, r.capped)} · 술집 제외` + (r.places.length > 1 ? " · 추천 1위 다음은 가까운 순" : "");
       r.places.forEach((p, i) => list.append(placeEl(p, i)));
+      $("#menuPickBtn").hidden = r.places.length < 2;
       showMap(r.places);
     } catch (e) {
       if (curMenu !== name) return;
@@ -826,7 +834,8 @@
     recommend({ avoid: S.recs.map(r => r.menu.name) });
   });
   $("#pickBtn").addEventListener("click", spin);
-  $("#placePickBtn").addEventListener("click", placeSpin);
+  $("#placePickBtn").addEventListener("click", () => placeSpin());
+  $("#menuPickBtn").addEventListener("click", () => placeSpin(findMenu(curMenu)));
   $("#sheetAgain").addEventListener("click", () => { if (sheetAgain === spin) closeSheet(); sheetAgain(); });
   $("#sheetClose").addEventListener("click", closeSheet);
   $("#sheet").addEventListener("click", e => { if (e.target.id === "sheet") closeSheet(); });
