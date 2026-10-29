@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>오늘의 밥</title>
+<meta name="description" content="날씨 맞춤 점심 추천">
+<meta name="theme-color" content="#FFB347" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1A1612" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="오늘의 밥">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main id="app">
+
+  <!-- 추천 (첫 화면) -->
+  <section id="view-home" class="view" aria-labelledby="greet">
+    <div id="weather" class="weather theme-loading" aria-live="polite">
+      <div class="weather-top">
+        <p class="brand"><b>오늘의 밥</b> <span>날씨 맞춤 점심 추천</span></p>
+        <button id="locBtn" class="loc-btn" type="button" aria-label="위치 바꾸기">
+          <span aria-hidden="true">📍</span> <span id="locLabel">위치 확인 중</span>
+        </button>
+      </div>
+      <div id="weatherBody" class="weather-body">
+        <p class="weather-msg">위치를 확인하고 있어요…</p>
+      </div>
+    </div>
+
+    <form id="placeForm" class="place-form" hidden>
+      <label for="placeInput" class="place-label">어디 근처에서 드세요?</label>
+      <p id="placeHint" class="hint">위치 권한이 없으면 지역이나 역 이름으로 찾을 수 있어요.</p>
+      <div class="place-row">
+        <input id="placeInput" type="search" placeholder="예: 판교역" autocomplete="off" enterkeyhint="search" required>
+        <button class="btn primary" type="submit">확인</button>
+      </div>
+      <div class="place-actions">
+        <button id="useGpsBtn" class="btn ghost" type="button">📍 현재 위치 다시 시도</button>
+        <button id="placeCancel" class="btn ghost" type="button" hidden>닫기</button>
+      </div>
+    </form>
+
+    <div id="notice" class="notice" role="status" hidden></div>
+
+    <h1 id="greet" class="greet">오늘의 밥은 뭘까?</h1>
+    <p id="recNote" class="rec-note"></p>
+    <ol id="recList" class="rec-list" aria-live="polite"></ol>
+
+    <div class="rec-actions">
+      <button id="againBtn" class="btn big" type="button">🔄 다시 추천</button>
+      <button id="pickBtn" class="btn big primary" type="button">🎯 랜덤 하나 뽑기</button>
+    </div>
+  </section>
+
+  <!-- 식당 목록 -->
+  <section id="view-menu" class="view" hidden aria-labelledby="menuTitle">
+    <header class="sub-head">
+      <button id="backBtn" class="icon-btn" type="button" aria-label="뒤로">←</button>
+      <h1 id="menuTitle">근처 식당</h1>
+    </header>
+    <div class="eat-row">
+      <button id="eatBtn" class="btn primary big" type="button">✓ 오늘 이거 먹을래요</button>
+      <div class="pref-pair" id="menuPrefs"></div>
+    </div>
+    <div id="mapBox" class="map-box" hidden aria-label="내 위치와 식당 위치 지도"></div>
+    <p id="placeSummary" class="summary" aria-live="polite"></p>
+    <ol id="placeList" class="place-list"></ol>
+  </section>
+
+  <!-- 내 메뉴 -->
+  <section id="view-my" class="view" hidden aria-labelledby="myTitle">
+    <header class="page-head"><h1 id="myTitle">내 메뉴</h1>
+      <p class="hint">♥ 좋아요는 3배 더 자주, ✕ 안 먹음은 추천하지 않아요.</p></header>
+
+    <details id="addBox" class="card add-box">
+      <summary>＋ 내 메뉴 직접 추가</summary>
+      <form id="addForm">
+        <label for="addName" class="field-label">메뉴 이름</label>
+        <input id="addName" type="text" maxlength="20" placeholder="예: 마라탕" required>
+        <fieldset>
+          <legend class="field-label">어울리는 날씨 (여러 개 가능)</legend>
+          <div id="addConds" class="chips"></div>
+        </fieldset>
+        <p id="addErr" class="err" hidden></p>
+        <div class="form-actions">
+          <button class="btn primary big" type="submit" id="addSave">추가</button>
+          <button class="btn ghost" type="button" id="addCancel" hidden>수정 취소</button>
+        </div>
+      </form>
+    </details>
+
+    <div id="recentBox"></div>
+    <div id="myList"></div>
+  </section>
+
+  <!-- 설정 -->
+  <section id="view-settings" class="view" hidden aria-labelledby="setTitle">
+    <header class="page-head"><h1 id="setTitle">설정</h1></header>
+    <div class="card">
+      <h2 class="card-title">식당 검색 반경</h2>
+      <div id="radiusChips" class="seg" role="radiogroup" aria-label="검색 반경"></div>
+      <p class="hint">반경을 바꾸면 추천 메뉴의 식당 수를 다시 확인해요.</p>
+    </div>
+    <div class="card">
+      <h2 class="card-title">위치</h2>
+      <p id="setLoc" class="hint"></p>
+      <button id="setLocBtn" class="btn big" type="button">📍 위치 바꾸기</button>
+    </div>
+    <div class="card">
+      <h2 class="card-title">정보</h2>
+      <p class="hint">날씨: Open-Meteo · 식당: 카카오맵<br>좋아요·안 먹음·내 메뉴·먹은 기록은 이 폰에만 저장돼요.</p>
+      <p id="keyState" class="hint"></p>
+    </div>
+  </section>
+
+</main>
+
+<nav class="tabbar" id="tabbar" aria-label="메뉴">
+  <a href="#" data-tab="home"><span aria-hidden="true">🍚</span>추천</a>
+  <a href="#my" data-tab="my"><span aria-hidden="true">♥</span>내 메뉴</a>
+  <a href="#settings" data-tab="settings"><span aria-hidden="true">⚙︎</span>설정</a>
+</nav>
+
+<div id="sheet" class="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="sheet-card">
+    <p class="sheet-kicker">오늘은 이거!</p>
+    <h2 id="sheetTitle"></h2>
+    <p id="sheetSub" class="hint"></p>
+    <button id="sheetGo" class="btn primary big" type="button">식당 보기</button>
+    <button id="sheetAgain" class="btn big" type="button">한 번 더 뽑기</button>
+    <button id="sheetClose" class="btn ghost" type="button">닫기</button>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status" hidden></div>
+
+<script src="config.js"></script>
+<script src="menus.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
