@@ -1,53 +1,54 @@
 /* 오늘의 밥 — 모바일 우선, 햇빛 아래에서도 잘 보이게 (대비 4.5:1 이상, rem 단위) */
 :root {
-  --bg: #FFF8EE;
+  /* 아이콘과 같은 파스텔 떡볶이 톤 */
+  --bg: #FFF3EF;
   --surface: #FFFFFF;
-  --surface-2: #FFF1DE;
-  --text: #1F1A14;
-  --text-2: #4A4036;          /* 보조 글씨도 충분히 진하게 */
-  --line: #E6D8C4;
-  --accent: #C2410C;          /* 흰 글씨와 대비 5:1 */
+  --surface-2: #FFE6DF;
+  --text: #2A1411;
+  --text-2: #5C352E;          /* 보조 글씨도 충분히 진하게 */
+  --line: #FFD3C7;
+  --accent: #E0352B;          /* 떡볶이 빨강, 흰 글씨와 대비 5.6:1 */
   --accent-text: #FFFFFF;
-  --badge-bg: #FFE1C2;
-  --badge-text: #7A2600;
-  --like: #C8102E;
+  --badge-bg: #FFE08A;        /* 노란 배지 (계란 노른자) */
+  --badge-text: #5A3300;
+  --like: #E0244A;
   --nope: #3D3D3D;
   --focus: #1D4ED8;
-  --shadow: 0 2px 10px rgba(80, 50, 10, .10);
+  --shadow: 0 3px 12px rgba(224, 53, 43, .12);
 
   /* 날씨 카드 */
-  --w-sun-bg: linear-gradient(135deg, #FFD36E, #FFB13B);  --w-sun-fg: #3A1F00;
-  --w-cloud-bg: linear-gradient(135deg, #DCE1E7, #C4CBD4); --w-cloud-fg: #1B232D;
-  --w-rain-bg: linear-gradient(135deg, #2D6BD2, #1F55B0);  --w-rain-fg: #FFFFFF;
-  --w-snow-bg: linear-gradient(135deg, #EAF6FF, #CFE8FB);  --w-snow-fg: #0B2E4F;
-  --w-hot-bg: linear-gradient(135deg, #DE4330, #C22F1E);   --w-hot-fg: #FFFFFF;
-  --w-load-bg: linear-gradient(135deg, #F3E7D5, #E9D9C2);  --w-load-fg: #2B2117;
+  --w-sun-bg: linear-gradient(135deg, #FFE58A, #FFB547);  --w-sun-fg: #3A1F00;
+  --w-cloud-bg: linear-gradient(135deg, #E4EAFF, #C8D2FA); --w-cloud-fg: #1C2452;
+  --w-rain-bg: linear-gradient(135deg, #3D78E6, #2A5BC8);  --w-rain-fg: #FFFFFF;
+  --w-snow-bg: linear-gradient(135deg, #EAF7FF, #C7E6FF);  --w-snow-fg: #0B2E4F;
+  --w-hot-bg: linear-gradient(135deg, #FF9A7E, #FF6A55);   --w-hot-fg: #3B0A05;
+  --w-load-bg: linear-gradient(135deg, #FFE3D9, #FFCDBF);  --w-load-fg: #3B1510;
 
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #15120E;
-    --surface: #221D17;
-    --surface-2: #2C251D;
-    --text: #F7F1E8;
-    --text-2: #D9CFC2;
-    --line: #43392D;
-    --accent: #FFA45C;
-    --accent-text: #1A0E00;
-    --badge-bg: #5A2C08;
-    --badge-text: #FFE0C4;
+    --bg: #1A1214;
+    --surface: #271B1D;
+    --surface-2: #342326;
+    --text: #FFF1EE;
+    --text-2: #E8CFCA;
+    --line: #4A3034;
+    --accent: #FF8A7A;
+    --accent-text: #2A0805;
+    --badge-bg: #FFD66B;
+    --badge-text: #3A2200;
     --like: #FF6B81;
     --nope: #E0E0E0;
     --focus: #93B4FF;
     --shadow: 0 2px 10px rgba(0, 0, 0, .4);
 
     --w-sun-bg: linear-gradient(135deg, #5C3B00, #4A2E00);  --w-sun-fg: #FFE2A0;
-    --w-cloud-bg: linear-gradient(135deg, #343C47, #2A313A); --w-cloud-fg: #EEF2F6;
+    --w-cloud-bg: linear-gradient(135deg, #2E3560, #252B4E); --w-cloud-fg: #EEF1FF;
     --w-rain-bg: linear-gradient(135deg, #17407F, #11346A);  --w-rain-fg: #FFFFFF;
     --w-snow-bg: linear-gradient(135deg, #1F4260, #183650);  --w-snow-fg: #E6F4FF;
     --w-hot-bg: linear-gradient(135deg, #7A1D14, #61160F);   --w-hot-fg: #FFE4DF;
-    --w-load-bg: linear-gradient(135deg, #2C251D, #241E17);  --w-load-fg: #F7F1E8;
+    --w-load-bg: linear-gradient(135deg, #3A2426, #2E1D1F);  --w-load-fg: #FFF1EE;
 
     color-scheme: dark;
   }
@@ -249,7 +250,7 @@ button, input, select { font: inherit; color: inherit; }
 /* 지도 위 표시 */
 .pin {
   width: max-content; min-width: 1.75rem; height: 1.75rem; padding: 0 .25rem; border-radius: 999px;
-  background: #C2410C; color: #fff; border: 2px solid #fff;
+  background: #E0352B; color: #fff; border: 2px solid #fff;
   font: 900 .875rem/1.5rem -apple-system, sans-serif; text-align: center;
   box-shadow: 0 1px 4px rgba(0,0,0,.4); cursor: pointer;
 }
