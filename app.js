@@ -241,12 +241,15 @@
           const places = data.filter(p => !LUNCH_SKIP.test(p.category_name || ""));
           // 식당 수는 첫 15곳에서 술집 비율만큼 덜어낸 어림값
           const total = raw <= data.length ? places.length : Math.round(raw * places.length / data.length);
-          res({ total, places, capped: raw >= 45 });
+          // 정확도순 1위 = 카카오맵에서 검색하면 맨 위에 나오는 집. 나머지는 가까운 순으로 보여 준다.
+          const pick = places[0] || null;
+          const rest = places.slice(1).sort((a, b) => (+a.distance || 0) - (+b.distance || 0));
+          res({ total, places: pick ? [pick, ...rest] : [], pick, capped: raw >= 45 });
         }
         else if (status === St.ZERO_RESULT) res({ total: 0, places: [] });
         else rej(Object.assign(new Error("search"), { kind: "search" }));
       }, {
-        location: new k.maps.LatLng(lat, lng), radius, sort: k.maps.services.SortBy.DISTANCE,
+        location: new k.maps.LatLng(lat, lng), radius, sort: k.maps.services.SortBy.ACCURACY,
         category_group_code: "FD6", size: 15,
       });
     }));
@@ -323,7 +326,7 @@
         const failed = [];
         res.forEach((r, i) => {
           if (r.status === "rejected") failed.push(batch[i]);
-          else if (r.value.total > 0) S.recs.push({ menu: batch[i], count: r.value.total, capped: r.value.capped });
+          else if (r.value.total > 0) S.recs.push({ menu: batch[i], count: r.value.total, capped: r.value.capped, pick: r.value.pick });
         });
         if (failed.length) {
           kakaoFail(res.find(r => r.status === "rejected").reason);
@@ -362,14 +365,17 @@
       list.append(h("li", { class: "rec", "data-name": name },
         h("button", {
           class: "rec-main", type: "button",
-          "aria-label": `${name}${liked ? ", 좋아요" : ""}${r.count != null ? `, 근처 ${r.count}곳` : ""}. 식당 보기`,
+          "aria-label": `${name}${liked ? ", 좋아요" : ""}${r.count != null ? `, 근처 ${r.count}곳` : ""}${r.pick ? `, 추천 식당 ${r.pick.place_name}` : ""}. 식당 보기`,
           onclick: () => go("#menu/" + encodeURIComponent(name)),
         },
           h("span", { class: "rec-emoji", "aria-hidden": "true" }, emoji(r.menu)),
           h("span", { class: "rec-text" },
-            h("span", { class: "rec-name" }, name),
-            r.count != null ? h("span", { class: "badge" }, "📍 근처 " + countLabel(r.count, r.capped)) : null),
-          h("span", { class: "rec-go", "aria-hidden": "true" }, "›")),
+            h("span", { class: "rec-head" },
+              h("span", { class: "rec-name" }, name),
+              r.count != null ? h("span", { class: "badge" }, countLabel(r.count, r.capped)) : null),
+            r.pick ? h("span", { class: "rec-pick" }, "👍 ", h("b", null, r.pick.place_name),
+              r.pick.distance ? h("span", { class: "nowrap" }, " · " + distLabel(+r.pick.distance)) : "") : null),
+),
         h("div", { class: "rec-btns" }, prefButtons(name, true))));
     });
     for (let i = S.recs.length; i < S.pending; i++) {
@@ -446,7 +452,8 @@
   function openSheet(rec) {
     if (!rec) return;
     $("#sheetTitle").textContent = `${emoji(rec.menu)} ${rec.menu.name}`;
-    $("#sheetSub").textContent = rec.count != null ? `반경 ${radiusLabel(P.radius)} 안에 ${countLabel(rec.count, rec.capped)}` : "";
+    $("#sheetSub").textContent = rec.pick ? `👍 ${rec.pick.place_name}${rec.pick.distance ? " · " + distLabel(+rec.pick.distance) : ""}`
+      : rec.count != null ? `반경 ${radiusLabel(P.radius)} 안에 ${countLabel(rec.count, rec.capped)}` : "";
     $("#sheetGo").onclick = () => { closeSheet(); go("#menu/" + encodeURIComponent(rec.menu.name)); };
     $("#sheet").hidden = false;
     $("#sheetGo").focus();
@@ -571,13 +578,13 @@
       const r = await searchPlaces(menu);
       if (curMenu !== name) return;
       const updateRec = S.recs.find(x => x.menu.name === name);
-      if (updateRec) { updateRec.count = r.total; updateRec.capped = r.capped; renderRecs(); }
+      if (updateRec) { updateRec.count = r.total; updateRec.capped = r.capped; updateRec.pick = r.pick; renderRecs(); }
       if (!r.places.length) {
         sum.replaceChildren(`반경 ${radiusLabel(P.radius)} 안에 ‘${name}’ 식당이 없어요. `,
           P.radius < 3000 ? h("a", { href: "#settings" }, "반경을 넓혀보세요") : "");
         return;
       }
-      sum.textContent = `반경 ${radiusLabel(P.radius)} 안 ${countLabel(r.total, r.capped)} · 가까운 순` + (r.total > r.places.length ? ` ${r.places.length}곳 표시` : "") + " · 술집 제외";
+      sum.textContent = `반경 ${radiusLabel(P.radius)} 안 ${countLabel(r.total, r.capped)} · 술집 제외` + (r.places.length > 1 ? " · 추천 1위 다음은 가까운 순" : "");
       r.places.forEach((p, i) => list.append(placeEl(p, i)));
       showMap(r.places);
     } catch (e) {
@@ -595,7 +602,9 @@
     return h("li", { class: "place", id: "pl-" + i },
       h("div", { class: "place-head", onclick: () => focusPlace(i, false) },
         h("span", { class: "num", "aria-hidden": "true" }, String(i + 1)),
-        h("div", null, h("h2", { class: "place-name" }, p.place_name), cat ? h("span", { class: "place-cat" }, cat) : null),
+        h("div", null,
+          i === 0 ? h("span", { class: "top-tag" }, "👍 카카오 추천 1위") : null,
+          h("h2", { class: "place-name" }, p.place_name), cat ? h("span", { class: "place-cat" }, cat) : null),
         p.distance ? h("span", { class: "place-dist" }, distLabel(+p.distance)) : null),
       h("div", { class: "place-info" },
         addr ? h("p", null, addr) : null,
