@@ -57,8 +57,9 @@
     <ol id="recList" class="rec-list" aria-live="polite"></ol>
 
     <div class="rec-actions">
-      <button id="againBtn" class="btn big" type="button">🔄 다시 추천</button>
-      <button id="pickBtn" class="btn big primary" type="button">🎯 랜덤 하나 뽑기</button>
+      <button id="pickBtn" class="btn big primary" type="button">🎯 메뉴 뽑기</button>
+      <button id="placePickBtn" class="btn big primary alt" type="button">🍽️ 식당 뽑기</button>
+      <button id="againBtn" class="btn big wide" type="button">🔄 다른 메뉴로 다시 추천</button>
     </div>
   </section>
 
@@ -133,10 +134,11 @@
 
 <div id="sheet" class="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
   <div class="sheet-card">
-    <p class="sheet-kicker">오늘은 이거!</p>
+    <p id="sheetKicker" class="sheet-kicker">오늘은 이거!</p>
     <h2 id="sheetTitle"></h2>
     <p id="sheetSub" class="hint"></p>
     <button id="sheetGo" class="btn primary big" type="button">식당 보기</button>
+    <div id="sheetLinks" class="place-links" hidden></div>
     <button id="sheetAgain" class="btn big" type="button">한 번 더 뽑기</button>
     <button id="sheetClose" class="btn ghost" type="button">닫기</button>
   </div>

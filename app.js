@@ -391,6 +391,7 @@
     const busy = S.pending > 0;
     list.setAttribute("aria-busy", String(busy));
     $("#pickBtn").disabled = busy || !S.recs.length;
+    $("#placePickBtn").disabled = busy || !S.recs.some(r => r.pick);
   }
 
   function togglePref(name, kind) {
@@ -449,14 +450,64 @@
     tick();
   }
 
+  let sheetAgain = spin;
   function openSheet(rec) {
     if (!rec) return;
+    sheetAgain = spin;
+    $("#sheetKicker").textContent = "오늘은 이 메뉴!";
     $("#sheetTitle").textContent = `${emoji(rec.menu)} ${rec.menu.name}`;
     $("#sheetSub").textContent = rec.pick ? `👍 ${rec.pick.place_name}${rec.pick.distance ? " · " + distLabel(+rec.pick.distance) : ""}`
       : rec.count != null ? `반경 ${radiusLabel(P.radius)} 안에 ${countLabel(rec.count, rec.capped)}` : "";
+    $("#sheetLinks").hidden = true;
+    $("#sheetGo").hidden = false;
     $("#sheetGo").onclick = () => { closeSheet(); go("#menu/" + encodeURIComponent(rec.menu.name)); };
     $("#sheet").hidden = false;
     $("#sheetGo").focus();
+  }
+
+  // 추천 메뉴들의 식당을 한데 모아 그중 한 곳을 뽑는다 (이미 받은 검색 결과를 다시 써서 추가 호출 없음)
+  async function placeSpin() {
+    if (spinning || !S.loc) return;
+    spinning = true;
+    const pool = new Map();
+    const results = await Promise.allSettled(S.recs.filter(r => r.count).map(r => searchPlaces(r.menu).then(x => ({ r, x }))));
+    for (const res of results) {
+      if (res.status !== "fulfilled") continue;
+      for (const p of res.value.x.places) if (!pool.has(p.id)) pool.set(p.id, { p, menu: res.value.r.menu });
+    }
+    const all = [...pool.values()];
+    if (!all.length) { spinning = false; toast("뽑을 식당이 없어요. 반경을 넓혀 보세요"); return; }
+    const win = all[Math.floor(Math.random() * all.length)];
+
+    sheetAgain = placeSpin;
+    $("#sheetKicker").textContent = `식당 ${all.length}곳 중에서 뽑는 중…`;
+    $("#sheetSub").textContent = "";
+    $("#sheetGo").hidden = true;
+    $("#sheetLinks").hidden = true;
+    ["#sheetAgain", "#sheetClose"].forEach(id => { $(id).disabled = true; });
+    $("#sheet").hidden = false;
+
+    const show = x => { $("#sheetTitle").textContent = x.p.place_name; };
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const total = reduce ? 0 : 18;
+    for (let step = 0; step < total; step++) {
+      show(all[Math.floor(Math.random() * all.length)]);
+      const t = step / total;
+      await new Promise(r => setTimeout(r, 50 + 320 * t * t * t));
+    }
+    show(win);
+    if (navigator.vibrate) try { navigator.vibrate(40); } catch (e) { /* 진동 미지원 */ }
+
+    const p = win.p;
+    const cat = (p.category_name || "").split(">").map(x => x.trim()).slice(1).join(" · ");
+    $("#sheetKicker").textContent = "오늘은 여기!";
+    $("#sheetSub").textContent = [`${emoji(win.menu)} ${win.menu.name}`, cat, p.distance ? distLabel(+p.distance) : ""].filter(Boolean).join(" · ");
+    $("#sheetLinks").replaceChildren(
+      h("a", { class: "btn big", href: p.place_url, target: "_blank", rel: "noopener" }, "카카오맵에서 보기"),
+      h("a", { class: "btn big primary", href: `https://map.kakao.com/link/to/${encodeURIComponent(p.place_name)},${p.y},${p.x}`, target: "_blank", rel: "noopener" }, "길찾기"));
+    $("#sheetLinks").hidden = false;
+    ["#sheetAgain", "#sheetClose"].forEach(id => { $(id).disabled = false; });
+    spinning = false;
   }
   function closeSheet() { $("#sheet").hidden = true; }
 
@@ -775,7 +826,8 @@
     recommend({ avoid: S.recs.map(r => r.menu.name) });
   });
   $("#pickBtn").addEventListener("click", spin);
-  $("#sheetAgain").addEventListener("click", () => { closeSheet(); spin(); });
+  $("#placePickBtn").addEventListener("click", placeSpin);
+  $("#sheetAgain").addEventListener("click", () => { if (sheetAgain === spin) closeSheet(); sheetAgain(); });
   $("#sheetClose").addEventListener("click", closeSheet);
   $("#sheet").addEventListener("click", e => { if (e.target.id === "sheet") closeSheet(); });
   document.addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });

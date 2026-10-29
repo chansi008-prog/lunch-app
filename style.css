@@ -219,6 +219,8 @@ button, input, select { font: inherit; color: inherit; }
 @keyframes shimmer { to { background-position: -200% 0; } }
 
 .rec-actions { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-top: 1.125rem; }
+.rec-actions .wide { grid-column: 1 / -1; }
+.btn.primary.alt { background: linear-gradient(135deg, #FFB547, #F2771A); color: #2A1100; }
 
 /* ---------- 식당 목록 ---------- */
 .sub-head { display: flex; align-items: center; gap: .75rem; }
@@ -366,7 +368,8 @@ body.sub .tabbar { display: none; }
   animation: up .28s cubic-bezier(.2, 1.4, .4, 1);
 }
 .sheet-kicker { margin: 0; font-weight: 900; color: var(--accent); }
-.sheet-card h2 { margin: 0 0 .25rem; font-family: var(--display); font-weight: 400; font-size: 2.75rem; line-height: 1.2; }
+#sheetLinks { margin-top: 0; }
+.sheet-card h2 { margin: 0 0 .25rem; min-height: 1.2em; font-family: var(--display); font-weight: 400; font-size: 2.75rem; line-height: 1.2; }
 @keyframes up { from { transform: translateY(30%); opacity: 0; } }
 
 .toast {
