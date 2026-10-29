@@ -1,6 +1,6 @@
 // 오늘의 밥 서비스 워커: 앱 파일은 새 버전을 먼저 받고, 인터넷이 안 되면 저장본으로 연다.
 // 날씨·카카오 요청은 건드리지 않는다 (항상 최신 값).
-const VERSION = "lunch-v1";
+const VERSION = "lunch-v2";
 const CORE = ["./", "index.html", "style.css", "app.js", "menus.js", "config.js", "manifest.json",
   "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png"];
 

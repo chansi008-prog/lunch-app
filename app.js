@@ -52,7 +52,7 @@
   }
   const radiusLabel = r => (r < 1000 ? r + "m" : r / 1000 + "km");
   const distLabel = m => (m < 1000 ? Math.round(m / 10) * 10 + "m" : (m / 1000).toFixed(1) + "km");
-  const countLabel = n => (n > 99 ? "99+곳" : n + "곳");
+  const countLabel = n => (n >= 45 ? "45곳+" : n + "곳"); // 카카오는 검색 결과를 최대 45곳까지만 센다
   function meters(a, b, c, d) {
     const R = 6371000, rad = Math.PI / 180;
     const x = (d - b) * rad * Math.cos(((a + c) / 2) * rad), y = (c - a) * rad;
